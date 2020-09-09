@@ -24,8 +24,8 @@ const byte address[6] = "00001";
 
 #define pin_pot_speed     A0
 #define pin_pot2_dir      A1
-int speed_pos;
-int dir_pos;
+int motorSpeed;
+int motorDir;
 /****** User Config *****/
 
 void setup() {
@@ -41,10 +41,11 @@ void loop() {
   //  pin_pot_speed neutral at 132  *  --> VRY
   //  pin_pot2_dir neutral at 127   *  --> VRX
   //*********************************
-
-  speed_pos = analogRead(pin_pot_speed);
-  dir_pos = analogRead(pin_pot2_dir);
-  radio.write(&speed_pos, sizeof(speed_pos));
+  
+  motorSpeed = map(analogRead(pin_pot_speed),0,1023,255,0);
+  motorDir = map(analogRead(pin_pot2_dir),0,1023,0,180);
+  
+  radio.write(&motorDir, sizeof(motorDir));
   delay(100);
 }
 

@@ -22,11 +22,9 @@
 #define pin_motor2_dir1   8
 #define pin_motor1_pwm    3 //Analog output to control speed of motor
 #define pin_motor2_pwm    5
-#define pin_pot_speed     A0
-#define pin_pot2_dir      A1
-int motorSpeed = 0;
-int motorDir;
 
+int motorSpeed = 0;
+int motorDir = 90;
 RF24 radio(5,6); // CE, CSN
 const byte address[6] = "00001";    //Address we send data. Should be same as receiving side.
 /******************* User Config **************************************/
@@ -50,34 +48,37 @@ void setup() {
 
   //Wireless communcation setup
   wireless_init();
-  Serial.begin(9600);
 
 }
 
 void loop() {
-  //*********************************
-  //  pin_pot_speed neutral at 132  *  --> VRY
-  //  pin_pot2_dir neutral at 127   *  --> VRX
-  //*********************************
+
   
   // Read Speed and Direction Input
-  motorSpeed = map(analogRead(pin_pot_speed),0,1023,255,0);
-  motorDir = map(analogRead(pin_pot2_dir),0,1023,0,180);
-  delay(200);
+  if(radio.available()){
+    radio.read(&motorDir, sizeof(motorDir));
+    if (motorDir>400 && motorDir<600)
+    {
+      
+    }
+    else{
+      // Direction Decisions
+      if(motorDir == 89)
+      {
+        dirServo.write(90);
+      }
+      else if(motorDir < 89)
+      {
+        dirServo.write(motorDir);
+      }
+      else if(motorDir > 89)
+      {
+        dirServo.write(motorDir);
+      }
+        }
+  }
 
-  // Direction Decisions
-  if(motorDir == 89)
-  {
-    dirServo.write(90);
-  }
-  else if(motorDir < 89)
-  {
-    dirServo.write(motorDir);
-  }
-  else if(motorDir > 89)
-  {
-    dirServo.write(motorDir);
-  }
+
 
   // Speed Decisions
   if(motorSpeed == 132)
@@ -115,7 +116,7 @@ void wireless_init(void)
 {
   Serial.begin(115200);
   radio.begin();                  //Start wireless comm
-  radio.openWritingPipe(address); //Set address
-  radio.setPALevel(RF24_PA_LOW);  //Set PA level low
+  radio.openReadingPipe(0,address); //Set address
+  radio.setPALevel(RF24_PA_MIN);  //Set PA level min
   radio.startListening();         //Set module as receiver
 }
