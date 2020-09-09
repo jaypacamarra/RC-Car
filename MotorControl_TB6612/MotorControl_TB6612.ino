@@ -1,3 +1,13 @@
+/*
+ * Author: Jay Pacamarra
+ * Date: Septemeber 09, 2020
+ * Due Date: September 10, 2020
+ * 
+ * Modified wireless RC Car using the NRF24L01
+ * Designed for speed
+ * 
+ */
+
 #include <Servo.h>
 
 #define pin_motor1_dir0   2
