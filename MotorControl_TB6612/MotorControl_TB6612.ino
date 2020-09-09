@@ -24,7 +24,7 @@ int motorDir;
 Servo dirServo; // create servo object
 
 //Function prototypes
-
+void printStatus(void);
 
 void setup() {
   // put your setup code here, to run once:
@@ -46,7 +46,7 @@ void loop() {
   
   // Read Speed and Direction Input
   motorSpeed = map(analogRead(pin_pot_speed),0,1023,255,0);
-  motorDir = map(analogRead(pin_pot2_dir),0,1023,0,180);
+  motorDir =  map(analogRead(pin_pot2_dir),0,1023,0,180);
   delay(200);
 
   // Direction Decisions
@@ -82,10 +82,15 @@ void loop() {
   }
 
   // Print Status for Debugging
+  printStatus();
+
+  delay(100);
+}
+
+void printStatus(void)
+{
   Serial.print("Speed: ");
   Serial.println(motorSpeed);
   Serial.print("Direction: ");
-  Serial.println(motorDir);
-
-  delay(100);
+  Serial.println(motorDir); 
 }
