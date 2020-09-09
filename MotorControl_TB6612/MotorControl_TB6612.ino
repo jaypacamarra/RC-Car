@@ -6,10 +6,16 @@
  * Modified wireless RC Car using the NRF24L01
  * Designed for speed
  * 
+ * Code: RECEIVER
+ * 
  */
 
 #include <Servo.h>
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
 
+/******************* User Config **************************************/
 #define pin_motor1_dir0   2
 #define pin_motor1_dir1   4
 #define pin_motor2_dir0   7
@@ -21,19 +27,29 @@
 int motorSpeed = 0;
 int motorDir;
 
+RF24 radio(5,6); // CE, CSN
+const byte address[6] = "00001";    //Address we send data. Should be same as receiving side.
+/******************* User Config **************************************/
+
 Servo dirServo; // create servo object
 
 //Function prototypes
 void printStatus(void);
+void wireless_init(void);
 
 void setup() {
-  // put your setup code here, to run once:
+  //Setup dirction pins
   pinMode(pin_motor1_dir0,OUTPUT);
   pinMode(pin_motor1_dir1,OUTPUT);
   pinMode(pin_motor2_dir0,OUTPUT);
   pinMode(pin_motor2_dir1,OUTPUT);
+
+  //Setup of servo to control direction of RC car
   dirServo.attach(9);
   dirServo.write(90); //allign wheels straight
+
+  //Wireless communcation setup
+  wireless_init();
   Serial.begin(9600);
 
 }
@@ -46,7 +62,7 @@ void loop() {
   
   // Read Speed and Direction Input
   motorSpeed = map(analogRead(pin_pot_speed),0,1023,255,0);
-  motorDir =  map(analogRead(pin_pot2_dir),0,1023,0,180);
+  motorDir = map(analogRead(pin_pot2_dir),0,1023,0,180);
   delay(200);
 
   // Direction Decisions
@@ -93,4 +109,13 @@ void printStatus(void)
   Serial.println(motorSpeed);
   Serial.print("Direction: ");
   Serial.println(motorDir); 
+}
+
+void wireless_init(void)
+{
+  Serial.begin(115200);
+  radio.begin();                  //Start wireless comm
+  radio.openWritingPipe(address); //Set address
+  radio.setPALevel(RF24_PA_LOW);  //Set PA level low
+  radio.startListening();         //Set module as receiver
 }
