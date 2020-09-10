@@ -16,6 +16,7 @@
 #include <RF24.h>
 
 /******************* User Config **************************************/
+#define pin_reset         7 //pin to reset arduino in case of loss of radio comm
 #define pin_motor1_dir0   2
 #define pin_motor1_dir1   4
 #define pin_motor1_pwm    3 //Analog pin to control speed of motor
@@ -40,11 +41,16 @@ Servo dirServo; // create servo object
 void printStatus(void);
 void wireless_init(void);
 void resetData(void);
+void resetArduino(void);
 
 void setup() {
   //Setup dirction pins
   pinMode(pin_motor1_dir0, OUTPUT);
   pinMode(pin_motor1_dir1, OUTPUT);
+
+  //Setup reset pin as output
+  pinMode(pin_reset, OUTPUT);
+  digitalWrite(pin_reset, LOW);
 
   //Setup of servo to control direction of RC car
   dirServo.attach(9);
@@ -61,15 +67,15 @@ void loop() {
   if (radio.available()) {
     Serial.println("Radio Data Received"); // Debugging only
     radio.read(&data, sizeof(Data_Package));
+
+    //Update time status for resetData or not
+    lastReceiveTime = millis(); //this is the time we received data
+    currentTime = millis();
   }
 
   //Just in case values exceed max of 255 or min of 0
   if (data.motorSpeed > 255) data.motorSpeed = 255;
   if (data.motorSpeed < 0) data.motorSpeed = 0;
-
-  //Update time status for resetData or not
-  //lastReceiveTime = millis(); //this is the time we received data
-  //currentTime = millis();
 
   // ********** Direction Decisions ************
   if (data.motorDir > 400 && data.motorDir < 600)
@@ -112,7 +118,12 @@ void loop() {
     Serial.println("forward");
   }
 
-  //if ( millis() - lastReceiveTime > 7000) resetData(); //Reset car if out of range
+  // Reset car if connection lost (data + program)
+  if ( millis() - lastReceiveTime > 1000) {
+    resetData(); //Reset car data if out of range
+    resetArduino();
+  }
+
 
   // Print Status for Debugging
   printStatus();
@@ -140,4 +151,10 @@ void resetData() {
   // Reset the values when there is no radio connection - Set initial default values
   data.motorSpeed = 132;
   data.motorDir = 90;
+}
+
+void resetArduino(void){
+  digitalWrite(pin_reset,HIGH);
+  delay(1);
+  digitalWrite(pin_reset,LOW);
 }
