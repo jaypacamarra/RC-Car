@@ -61,6 +61,7 @@ void loop() {
 
 void wireless_init(void)
 {
+  Serial.begin(9600);
   radio.begin();
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_LOW);
